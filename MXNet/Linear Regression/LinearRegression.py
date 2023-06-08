@@ -1,5 +1,11 @@
-import numpy as np
-from mxnet import nd
+from mxnet.gluon import nn
+from mxnet import autograd
+from mxnet import gluon
+from mxnet import np, npx
+import mxnet as mx
+npx.set_np()
+data_ctx = mx.cpu()
+model_ctx = mx.cpu()
 class LinearRegression:
     # OLS Method (Ordinary Least Squares) training
     def OLS_fit(self, X, y):
