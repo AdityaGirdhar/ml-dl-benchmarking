@@ -2,7 +2,7 @@ Readme goes here
 
 # Advantage 
 ### It's a high level api of tensorflow 
-## It has many inbuilt function to implement the main algorithm which in implementing takes a line or two
+### It has many inbuilt function to implement the main algorithm which in implementing takes a line or two
 ### Highly helpful for Neural Network since it's libraries are written  in a very optimised way to implement it
 # Disadvantage :
 ### Can't implement Linear regression using normal equation because there is no method to multiply 
