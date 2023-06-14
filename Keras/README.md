@@ -1,4 +1,3 @@
-Readme goes here
 
 # Advantage 
 ### * It's a high level api of tensorflow 
