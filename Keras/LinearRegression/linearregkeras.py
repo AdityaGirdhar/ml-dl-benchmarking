@@ -3,7 +3,7 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import SGD
-
+import time
 class LinearRegression:
     def __init__(self):
         self.model = None
@@ -27,6 +27,7 @@ class LinearRegression:
         self.history = self.model.fit(X, y, epochs=epochs, batch_size=batch_size, verbose=0)
     
     def predict(self, X):
+        starttime = time.time()
         # Normalize the features using training data statistics
         X_mean, X_std = X.mean(), X.std()
         X = (X - X_mean) / X_std
@@ -37,8 +38,9 @@ class LinearRegression:
         # Denormalize the predictions using training data statistics
         y_mean, y_std = train.iloc[:, -1].values.mean(), train.iloc[:, -1].values.std()
         predictions = (predictions * y_std) + y_mean
-        
-        return predictions
+        endtime= time.time()
+        pt = endtime - starttime
+        return predictions , pt
 
 # Create a sample DataFrame
 data = np.loadtxt("airfoil_self_noise.dat")
@@ -64,7 +66,8 @@ lr.fit(X, y)
 predictions = lr.predict(X_test)
 
 # Calculate MSE loss
-mse_loss = np.mean((predictions - y_test) ** 2)
+mse_loss = np.mean((predictions[0] - y_test) ** 2)
 
 # print("Predictions:", predictions)
 print("MSE Loss:", mse_loss)
+print("time to predict" ,predictions[1] )

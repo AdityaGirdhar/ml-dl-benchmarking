@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
-from keras.optimizers import SGD
+from tensorflow.keras.optimizers import SGD
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -17,15 +18,17 @@ df.head()
 
 from tensorflow import keras
 from tensorflow.keras import layers
-
+import time
 class LogisticRegression:
     def __init__(self, input_dim):
         self.model = keras.Sequential()
-        opti = SGD(learning_rate= 0.01)
+        opti = SGD(learning_rate=0.01)  # Set the learning rate using 'lr' parameter
         self.model.add(layers.Dense(1, activation='sigmoid', input_shape=(input_dim,)))
-        self.model.compile(optimizer= opti, loss='binary_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer=opti, loss='binary_crossentropy', metrics=['accuracy'])
+
 
     def fit(self, X_train, y_train, num_epochs, display_step):
+      # start_time= time.time()
       for epoch in range(num_epochs):
             # Train the model for one epoch
         history = self.model.fit(X_train, y_train, epochs=1, verbose=0)
@@ -33,10 +36,17 @@ class LogisticRegression:
             # Display the loss every display_staep steps
         if (epoch + 1) % display_step == 0:
           loss = history.history['loss'][0]
-          print(f"Epoch {epoch+1}, Loss: {loss:.4f}")
+          print("Epoch " + str(epoch+1) + ", Loss: " + str(loss))
+
+          
+      
 
     def predict(self, X_test):
-      return self.model.predict(X_test)
+      start_time= time.time()
+      val = self.model.predict(X_test)
+      end_time= time.time()
+      train_time= end_time - start_time
+      return val , train_time
     def evaluate(self, X_test, y_test):
       _, accuracy = self.model.evaluate(X_test, y_test, verbose=0)
       return accuracy
@@ -57,11 +67,13 @@ X_test = test.drop("class", axis=1)
 Y_test = test["class"]
 
 logreg= LogisticRegression(X_train.shape[1])
-logreg.fit(X_train , Y_train, 1000, 100)
+pt=logreg.fit(X_train , Y_train, 100, 10)
+print("training time" , pt)
 X = train.drop("class", axis=1)
 y = train["class"]
 
-logreg.predict(X_test.values)
+tup = logreg.predict(X_test)
 
 accuracy = logreg.evaluate(X_test, Y_test)
-print(f"Test Accuracy: {accuracy:.4f}")
+print("Test Accuracy: " + str(accuracy))
+print("predicting time " , tup[1])
