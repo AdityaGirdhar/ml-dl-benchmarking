@@ -20,4 +20,3 @@ class LinearRegression:
         y_pred = nd.linalg_gemm2(X, w)
         y_pred = y_pred.reshape((y_pred.shape[0], 1))
         return y_pred
-    
