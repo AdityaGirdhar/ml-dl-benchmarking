@@ -53,7 +53,7 @@ Use the YML file provided in this repository in- [dependencies.yml](Dependencies
 After running the above command, your environment will be created with all the dependencies installed.
 6. To activate the environment, run the following command: 
 ```
-conda activate mxnet
+conda activate myenv
 ```
 7. To run the Jupyter Notebook, you need to run the following command: 
 ```
