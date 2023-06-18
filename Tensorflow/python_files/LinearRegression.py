@@ -70,8 +70,8 @@ class LinearRegression:
 
 
 # Load and preprocess the data
-data = np.loadtxt("airfoil_self_noise.dat")
-cols = ["frequency", "angleofattack", "chordlength", "freestreamvelocity", "suctionsidedisplacement", "soundpressure"]
+data = np.loadtxt(r'Tensorflow\custom_2017_2020.dat',delimiter=',')
+cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
 df = pd.DataFrame(data, columns=cols)
 features = df.iloc[:, :5]
 target = df.iloc[:, -1]
