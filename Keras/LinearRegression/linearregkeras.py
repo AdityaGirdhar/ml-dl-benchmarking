@@ -3,6 +3,7 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import SGD
+import tensorflow as tf
 import time
 class LinearRegression:
     def __init__(self):
@@ -41,6 +42,11 @@ class LinearRegression:
         endtime= time.time()
         pt = endtime - starttime
         return predictions , pt
+
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 
 # Create a sample DataFrame
 data = np.loadtxt(r'Keras\LinearRegression\dataset\custom_2017_2020.dat',delimiter=',')

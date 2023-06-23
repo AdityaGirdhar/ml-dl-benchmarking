@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import time
-
+import tensorflow as tf
 class LinearRegression:
     def __init__(self):
         self.weights = None
@@ -27,6 +27,10 @@ class LinearRegression:
         endtime = time.time()
         pt = endtime - starttime
         return predictions, pt
+
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
 
 # Create a sample DataFrame
@@ -55,5 +59,5 @@ predictions = lr.predict(X_test)
 # Calculate MSE loss
 mse_loss = np.mean((predictions[0] - y_test) ** 2)
 
-print("MSE Loss:", mse_loss)
+# print("MSE Loss:", mse_loss)
 print("Time to predict:", predictions[1])
