@@ -43,6 +43,8 @@ class LinearRegression:
         execution_time = end_time - start_time
         return predictions, execution_time
 
+# Specify the device type as "cuda"
+device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
 
 # Load and preprocess the data
 data = np.loadtxt("airfoil_self_noise.dat")

@@ -3,6 +3,7 @@ import pandas as pd
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import SGD
+import tensorflow as tf
 import time
 class LinearRegression:
     def __init__(self):
@@ -42,12 +43,17 @@ class LinearRegression:
         pt = endtime - starttime
         return predictions , pt
 
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
+
 # Create a sample DataFrame
-data = np.loadtxt("airfoil_self_noise.dat")
-cols = ["frequency", "angleofattack", "chordlength", "freestreamvelocity", "suctionsidedisplacement", "soundpressure"]
+data = np.loadtxt(r'Keras\LinearRegression\dataset\custom_2017_2020.dat',delimiter=',')
+cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
 df = pd.DataFrame(data, columns=cols)
-train = df.sample(frac=0.8)
-test = df.sample(frac=0.2)
+train = df.sample(frac=0.001)
+test = df.sample(frac=0.0005)
 
 # Split the data into features and target
 X = train.iloc[:, :-1].values

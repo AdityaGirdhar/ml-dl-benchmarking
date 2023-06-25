@@ -86,6 +86,8 @@ class LogisticRegression:
 
         # return val_pred_labels, val_true_labels
 
+# Specify the device type as "cuda"
+device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
 
 # Load the data
 cols = ["fLength", "fWidth", "fSize", "fConc", "fConc1", "fAsym", "fM3Long", "fM3Trans", "fAlpha", "fDist", "class"]

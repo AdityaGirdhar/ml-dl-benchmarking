@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import time
-
+import tensorflow as tf
 class NaiveBayes:
     def __init__(self):
         self.prior = None
@@ -47,6 +47,12 @@ class NaiveBayes:
     def gaussian_pdf(self, x, mean, variance):
         exponent = np.exp(-(x - mean) ** 2 / (2 * variance))
         return (1 / np.sqrt(2 * np.pi * variance)) * exponent
+
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+else:
+    print("NO")
 
 
 # Load the dataset and split into training and testing sets

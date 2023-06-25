@@ -8,24 +8,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-# from imblearn.over_sampling import RandomOverSampler
-cols = ["fLength", "fWidth", "fSize", "fConc", "fConc1", "fAsym", "fM3Long", "fM3Trans", "fAlpha", "fDist", "class"]
-df = pd.read_csv("magic04.data", names=cols)
-df["class"] = (df["class"] == "g").astype(int)
-print(df)
-df.head()
 
 
 from tensorflow import keras
+import tensorflow as tf
 from tensorflow.keras import layers
 import time
+
 class LogisticRegression:
     def __init__(self, input_dim):
         self.model = keras.Sequential()
         opti = SGD(learning_rate=0.01)  # Set the learning rate using 'lr' parameter
         self.model.add(layers.Dense(1, activation='sigmoid', input_shape=(input_dim,)))
         self.model.compile(optimizer=opti, loss='binary_crossentropy', metrics=['accuracy'])
-
+        
 
     def fit(self, X_train, y_train, num_epochs, display_step):
       # start_time= time.time()
@@ -51,7 +47,14 @@ class LogisticRegression:
       _, accuracy = self.model.evaluate(X_test, y_test, verbose=0)
       return accuracy
 
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
+
+cols = ["fLength", "fWidth", "fSize", "fConc", "fConc1", "fAsym", "fM3Long", "fM3Trans", "fAlpha", "fDist", "class"]
+df = pd.read_csv("magic04.data", names=cols)
+df["class"] = (df["class"] == "g").astype(int)
 
 train =  df.sample(frac=0.8) 
 test= df.sample(frac=0.2) 
@@ -68,7 +71,7 @@ Y_test = test["class"]
 
 logreg= LogisticRegression(X_train.shape[1])
 pt=logreg.fit(X_train , Y_train, 100, 10)
-print("training time" , pt)
+# print("training time" , pt)
 X = train.drop("class", axis=1)
 y = train["class"]
 
