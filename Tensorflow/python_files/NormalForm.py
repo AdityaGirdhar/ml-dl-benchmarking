@@ -47,8 +47,8 @@ class LinearRegression:
 device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
 
 # Load and preprocess the data
-data = np.loadtxt("airfoil_self_noise.dat")
-cols = ["frequency", "angleofattack", "chordlength", "freestreamvelocity", "suctionsidedisplacement", "soundpressure"]
+data = np.loadtxt(r'Tensorflow\custom_2017_2020.csv',delimiter=',')
+cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
 df = pd.DataFrame(data, columns=cols)
 train = df.sample(frac=0.8)
 test = df.sample(frac=0.2)

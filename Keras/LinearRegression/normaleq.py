@@ -32,11 +32,18 @@ physical_devices = tf.config.list_physical_devices('GPU')
 if len(physical_devices) > 0:
     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-
+physical_devices = tf.config.list_physical_devices('GPU')
+if len(physical_devices) > 0:
+    # Enable memory growth for the first GPU device
+    tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    print('Running on GPU')
+else:
+    print('Running on CPU')
 # Create a sample DataFrame
-data = np.loadtxt(r'Keras\LinearRegression\dataset\custom_2017_2020.dat',delimiter=',')
+df = pd.read_csv("custom_2017_2020.csv", delimiter=',', skiprows=1)
+
 cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
-df = pd.DataFrame(data, columns=cols)
+df = pd.DataFrame(df, columns=cols)
 train = df.sample(frac=0.001)
 test = df.sample(frac=0.0005)
 
