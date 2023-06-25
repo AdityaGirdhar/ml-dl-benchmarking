@@ -49,7 +49,7 @@ jupyter notebook
 ```
 conda env create -f dependencies.yml
 ```
-Use the YML file provided in this repository in- [dependencies.yml](Dependencies/requirements_GPU.yml).
+Use the YML file provided in this repository in- [dependencies.yml](Dependencies/dependencies_GPU.yml).
 After running the above command, your environment will be created with all the dependencies installed.
 6. To activate the environment, run the following command: 
 ```
