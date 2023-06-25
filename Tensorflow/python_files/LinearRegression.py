@@ -68,6 +68,8 @@ class LinearRegression:
 
         return pred.numpy()
 
+# Specify the device type as "cuda"
+device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
 
 # Load and preprocess the data
 data = np.loadtxt(r'Tensorflow\custom_2017_2020.dat',delimiter=',')
