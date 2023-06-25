@@ -55,7 +55,7 @@ if len(physical_devices) > 0:
 
 
 # Create a sample DataFrame
-df = pd.read_csv("custom_2017_2020.dat", delimiter=',', skiprows=1)
+df = pd.read_csv("custom_2017_2020.csv", delimiter=',', skiprows=1)
 train = df.sample(frac=0.001)
 test = df.sample(frac=0.0005)
 

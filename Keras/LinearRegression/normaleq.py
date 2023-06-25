@@ -40,9 +40,10 @@ if len(physical_devices) > 0:
 else:
     print('Running on CPU')
 # Create a sample DataFrame
-data = np.loadtxt("custom_2017_2020.dat",delimiter=',')
+df = pd.read_csv("custom_2017_2020.csv", delimiter=',', skiprows=1)
+
 cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
-df = pd.DataFrame(data, columns=cols)
+df = pd.DataFrame(df, columns=cols)
 train = df.sample(frac=0.001)
 test = df.sample(frac=0.0005)
 
