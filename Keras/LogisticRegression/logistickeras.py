@@ -24,6 +24,7 @@ class LogisticRegression:
         
 
     def fit(self, X_train, y_train, num_epochs, display_step):
+      start_time = time.time()
       # start_time= time.time()
       for epoch in range(num_epochs):
             # Train the model for one epoch
@@ -32,9 +33,10 @@ class LogisticRegression:
             # Display the loss every display_staep steps
         if (epoch + 1) % display_step == 0:
           loss = history.history['loss'][0]
-          print("Epoch " + str(epoch+1) + ", Loss: " + str(loss))
-
-          
+          # print("Epoch " + str(epoch+1) + ", Loss: " + str(loss))
+      endtime = time.time()
+      pt = endtime - start_time
+      print(pt)
       
 
     def predict(self, X_test):
@@ -78,5 +80,5 @@ y = train["class"]
 tup = logreg.predict(X_test)
 
 accuracy = logreg.evaluate(X_test, Y_test)
-print("Test Accuracy: " + str(accuracy))
-print("predicting time " , tup[1])
+# print("Test Accuracy: " + str(accuracy))
+# print("predicting time " , tup[1])
