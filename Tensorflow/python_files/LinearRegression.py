@@ -68,12 +68,14 @@ class LinearRegression:
 
         return pred.numpy()
 
+# Specify the device type as "cuda"
+device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
 
 # Load and preprocess the data
 data = np.loadtxt(r'Tensorflow\custom_2017_2020.dat',delimiter=',')
 cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
 df = pd.DataFrame(data, columns=cols)
-features = df.iloc[:, :5]
+features = df.iloc[:, :-1]
 target = df.iloc[:, -1]
 
 # Split the data into training and validation sets

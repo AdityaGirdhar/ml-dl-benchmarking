@@ -44,7 +44,9 @@ class NaiveBayesClassifier:
         
         return val_predictions
     
-    
+# Specify the device type as "cuda"
+device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
+
 cols = ["fLength", "fWidth", "fSize", "fConc", "fConc1", "fAsym", "fM3Long", "fM3Trans", "fAlpha", "fDist", "class"]
 df = pd.read_csv("magic04.data", names=cols)
 df["class"] = (df["class"] == "g").astype(int)
