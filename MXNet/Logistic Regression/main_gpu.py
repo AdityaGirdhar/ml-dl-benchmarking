@@ -8,9 +8,15 @@ from mxnet.gluon import nn
 import mxnet as mx
 import numpy as np
 import pandas as pd
+from mxnet import profiler
 import time
+import re
 data_ctx = mx.gpu()
 model_ctx = mx.gpu()
+
+# %%
+# setting the profiler for measuring the execution time and memory usage
+profiler.set_config(profile_all=False,profile_symbolic = False, profile_imperative = False,profile_memory = True, profile_api = True,aggregate_stats=True,continuous_dump=False, filename='log_reg_gpu_profile.json')
 
 # %% [markdown]
 # Reading and pre-processing of data
@@ -52,7 +58,6 @@ batch_size = 10
 weights = nd.random_normal(shape=(X.shape[1], 1), ctx=model_ctx)
 bias = 0
 num_samples, num_features = X.shape
-print(num_samples, num_features)
 
 # %%
 data_set = gluon.data.ArrayDataset(X, y)
@@ -76,11 +81,7 @@ trainer = gluon.Trainer(params = net.collect_params(), optimizer='sgd', optimize
 # Training the model
 
 # %%
-start = time.time()
-
-# %%
-# training the model over the number of epochs
-for epoch in range(num_of_epochs):
+def training_function():
     cumulative_loss = 0
     # for each epoch, iterating over the dataset in batches
     for i, (data, label) in enumerate(data_loader):
@@ -93,9 +94,64 @@ for epoch in range(num_of_epochs):
         cumulative_loss += nd.sum(L).asscalar()
 
 # %%
-end = time.time()
+# running one epoch before profiling
+training_function()
 
 # %%
-print(f"Time taken to run the model: {end - start} seconds")
+mx.nd.waitall() 
+
+# starting the profiler
+start = time.time()
+profiler.set_state('run')
+
+# %%
+for epoch in range(num_of_epochs):
+    training_function()
+
+# %%
+# waiting for all operations to end, then stopping the profiler
+mx.nd.waitall()
+end = time.time()
+profiler.set_state('stop')
+
+# %%
+results = profiler.dumps()
+
+# %%
+result = results
+result = result.split('\n')
+
+# %%
+# splitting the result into a list of lists
+for i in range(len(result)):
+    result[i] = result[i].split()
+
+# %%
+# extracting the maximum gpu and cpu memory usage and the total execution time
+max_gpu_use = 0
+max_cpu_use = 0
+total_execution_time = 0
+# traversing over the lists and trying to find the maximum gpu and cpu memory usage and the total execution time
+for i in result:
+    if (len(i)>=1 and i[0]=='Memory:'):
+        if (i[1]=='gpu/0'):
+            max_gpu_use = float(i[-2])
+        elif (i[1]=='cpu/0'):
+            max_cpu_use = float(i[-2])
+        else: continue
+    # if the length of the list 6 and the second to sixth elements are numbers, then it is a time entry
+    else:
+        if (len(i)>=6):
+            # if it is a valid time entry, then add it to the total execution time
+            if (re.match(r'^-?\d+(?:\.\d+)$', i[-4]) is not None):
+                total_execution_time += float(i[-4])
+
+if (total_execution_time==0):
+    total_execution_time = (end - start)*1000
+
+# %%
+print(f"Maximum GPU memory usage: {max_gpu_use} KB")
+print(f"Maximum CPU memory usage: {max_cpu_use} KB")
+print(f"Total execution time: {total_execution_time} milli seconds (ms)")
 
 

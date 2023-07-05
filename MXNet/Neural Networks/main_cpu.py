@@ -5,9 +5,14 @@ import pandas as pd
 import mxnet as mx
 from mxnet import profiler
 import re
+import time
 data_ctx = mx.cpu()
 model_ctx = mx.cpu()        
 mx.random.seed(42, ctx=model_ctx)
+
+# %%
+# setting the profiler for measuring the execution time and memory usage
+profiler.set_config(profile_all=False,profile_symbolic = False, profile_imperative = False,profile_memory = True, profile_api = True, aggregate_stats=True,continuous_dump=False, filename='neural_net_gpu_profile.json')
 
 # %%
 # loading the dataset using mx.test_utils
@@ -74,11 +79,9 @@ training_function()
 # %%
 mx.nd.waitall() 
 
-# setting the profiler for measuring the execution time and memory usage
-profiler.set_config(profile_all=True,aggregate_stats=True,continuous_dump=True)
-
 # starting the profiler
 profiler.set_state('run')
+start = time.time()
 
 # %%
 for epoch in range(num_of_epochs):
@@ -87,6 +90,7 @@ for epoch in range(num_of_epochs):
 # %%
 # waiting for all operations to end, then stopping the profiler
 mx.nd.waitall()
+end = time.time()
 profiler.set_state('stop')
 
 # %%
@@ -121,13 +125,12 @@ for i in result:
             if (re.match(r'^-?\d+(?:\.\d+)$', i[-4]) is not None):
                 total_execution_time += float(i[-4])
 
-max_gpu_use = max_gpu_use/1024
-max_cpu_use = max_cpu_use/1024
-total_execution_time = total_execution_time/1000
+if (total_execution_time==0):
+    total_execution_time = (end - start)*1000
 
 # %%
-print(f"Maximum GPU memory usage: {max_gpu_use} MB")
-print(f"Maximum CPU memory usage: {max_cpu_use} MB")
-print(f"Total execution time: {total_execution_time} seconds")
+print(f"Maximum GPU memory usage: {max_gpu_use} KB")
+print(f"Maximum CPU memory usage: {max_cpu_use} KB")
+print(f"Total execution time: {total_execution_time} milli seconds (ms)")
 
 
