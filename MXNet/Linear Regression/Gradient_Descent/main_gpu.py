@@ -9,7 +9,7 @@
 # The weights are updated as-
 # Formula: $$ w = w - \alpha \cdot \frac{\partial L}{\partial w} $$
 # where $\alpha$ is the learning rate.
-
+x
 # %%
 # importing packages and libraries
 from mxnet import nd, gluon, autograd
