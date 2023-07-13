@@ -2,7 +2,8 @@
 # Table of Contents
 1. [Performance comparison of deep learning frameworks](#performance-comparison-of-deep-learning-frameworks)
 2. [Comparative Study of deep learning software frameworks](#comparative-study-of-deep-learning-software-frameworks)
-
+3. [DLBench: a comprehensive experimental evaluation of deep learning frameworks]
+(#dlbench-a-comprehensive-experimental-evaluation-of-deep-learning-frameworks)
 
 ## Performance comparison of deep learning frameworks
 Published in [dergipark](https://dergipark.org.tr/en/download/article-file/1201877)
@@ -31,3 +32,14 @@ Published in [arxiv](https://arxiv.org/pdf/1511.06435.pdf)
 - The study is very similar to our work, and hence we can take a lot of inspiration from this paper.
 - The study has worked on more advanced DL architectures, and probably we can try to implement some of them instead of vanilla ML algorithms.
 - We can try to work on hyperparameters and try to compare between the libraries on various combinations of hyperparameters.
+
+## DLBench: a comprehensive experimental evaluation of deep learning frameworks
+Published in [Springer Link](https://link.springer.com/article/10.1007/s10586-021-03240-4)
+### Summary:
+- Aims to compare between TensorFlow, MXNet, PyTorch, Theano, Chainer, and Keras based on three DL models- CNN, Region based CNN (R-CNN), and LSTM. 
+- The comparison metrics used are - training time, accuracy, convergence, resource consumption patterns. Have conducted the study on both CPU and GPU environments using different datasets. 
+- The study has used six popular datasets for study- MNIST, CIFAR-10, CIFAR-100, SVHN, IMDB reviews, and VOC2012.
+- For studying CPU/GPU utilisation, the study has used the metric as how frequently the CPU is utilized during the training of the deep learning models. 
+- Instead of trying out by varying several hyperparameters, the study has focussed on working with the default hyperparameters which were set, and the epochs were varied. 
+### Shortcomings: 
+- After carefully going through source code, it is noted that the study has made use of the time module instead of using profilers provided by frameworks for performing benchmarkings. 
