@@ -3,7 +3,7 @@ In part of the study to compare between the libraries, MXNet is used as a popula
 
 # Table of Contents
 1. [Installation and Setup](#installation-and-setup)
-
+2. [Literature Review](#literature-review)
 
 # Installation and Setup 
 In order to setup and run the code of MXNet on your machine, you need to follow the following steps: 
@@ -59,3 +59,6 @@ conda activate myenv
 ```
 jupyter notebook
 ```
+
+# Literature Review
+For reading the literature review, please [click here](LiteratureReview/README.md)

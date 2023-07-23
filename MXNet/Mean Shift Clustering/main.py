@@ -1,43 +1,60 @@
+# %% [markdown]
+# Importing the required libraries and packages
+
 # %%
-# importing packages and libraries
+# importing required packages and libraries
+from PIL import Image
 from mxnet import nd, gluon, autograd
 from mxnet.gluon import nn
 import mxnet as mx
 import numpy as np
 import pandas as pd
-from mxnet import profiler
 import time
+from mxnet import profiler
 import re
-data_ctx = mx.cpu()
-model_ctx = mx.cpu()
+import matplotlib.pyplot as plt
+data_ctx = mx.gpu()
+model_ctx = mx.gpu()
 
 # %%
 # setting the profiler for measuring the execution time and memory usage
-profiler.set_config(profile_all=False,profile_symbolic = False, profile_imperative = False,profile_memory = True, profile_api = True, aggregate_stats=True,continuous_dump=False, filename='naive_bayes_gpu_profile.json')
+profiler.set_config(profile_all=True,aggregate_stats=True,continuous_dump=False, filename='mean_shift_gpu_profile.json')
 
-# %%
-# load the dataset
-df = pd.read_csv('magic_gamma_telescope.csv', header=None)
 
 # %% [markdown]
-# Pre-processing step
+# Loading image and pre-processing
 
 # %%
-# convert into numpy array
-dataset = df.values
-dataset[:, -1] = [1 if x == 'g' else 0 for x in dataset[:, -1]]
+# loading the image to be used using pillow
+img = Image.open('peppers.png').resize((200, 150))
+print(img)
+
 
 # %%
-# splitting the data into unique classes's data
-X_0 = nd.array(dataset[dataset[:, -1] == 0][:, :-1], ctx = data_ctx)
-X_1 = nd.array(dataset[dataset[:, -1] == 1][:, :-1], ctx = data_ctx)
-# removing the target variable from the dataset
-dataset = dataset[:, :-1]
-# changing the datatype to float due to standard deviation computation issues
-dataset = np.array(dataset, dtype=np.float64)
+# converting the image to numpy array
+image = np.array(img)
+
+# %%
+# converting the numpy image to mxnet array
+mx_image = mx.nd.array(image).copyto(data_ctx)
+mx_image = mx_image.astype('float32')/255
+
+# %%
+# getting the dimensions of the image and setting hyperparameters
+width = mx_image.shape[0]
+height = mx_image.shape[1]
+colors = mx_image.shape[2]
+num_of_epochs = 10
+bandwidth = 0.1
+
+# %%
+print(mx_image.shape)
+plt.figure()
+plt.imshow(mx_image.asnumpy())
+plt.show()
 
 # %% [markdown]
-# Training step
+# Training the model
 
 # %%
 mx.nd.waitall() 
@@ -47,27 +64,16 @@ profiler.set_state('run')
 start = time.time()
 
 # %%
-start = time.time()
-
-# %%
-# Class Prior Probabilities
-# computing the prior probabilities of the two classes
-prior_prob_0 = X_0.shape[0] / dataset.shape[0]
-prior_prob_1 = X_1.shape[0] / dataset.shape[0]
-
-# %%
-# Class specific statistics
-# computing the mean and the standard deviations of the features of the two classes
-mean_0 = nd.mean(X_0, axis = 0)
-mean_1 = nd.mean(X_1, axis = 0)
-std_0 = nd.array(np.std(X_0.asnumpy(), axis = 0), ctx = data_ctx)
-std_1 = nd.array(np.std(X_1.asnumpy(), axis = 0), ctx = data_ctx)
-
-# %%
-# Overall statistics computation
-# computing the mean and the standard deviations of the features 
-mean_total = nd.array(np.mean(dataset, axis = 0))
-std_total = nd.array(np.std(dataset, axis = 0))
+# training 
+mx_image2 = mx_image.copyto(data_ctx)
+for epoch in range(num_of_epochs):
+    for w in range(width):
+        for h in range(height):
+            k = mx.nd.exp(mx.nd.sum(-mx.nd.square((mx_image[w,h] - mx_image)/bandwidth), axis = 2))
+            a = mx.nd.sum((mx_image-mx_image[w,h])*k.reshape(width, height, 1), axis=(0,1))
+            b = mx.nd.sum(k, axis=(0,1))
+            mx_image2[w,h] = mx_image[w,h] + a/b
+    mx_image = mx_image2.copyto(data_ctx)
 
 # %%
 # waiting for all operations to end, then stopping the profiler
@@ -114,5 +120,11 @@ if (total_execution_time==0):
 print(f"Maximum GPU memory usage: {max_gpu_use} KB")
 print(f"Maximum CPU memory usage: {max_cpu_use} KB")
 print(f"Total execution time: {total_execution_time} milli seconds (ms)")
+
+# %%
+print(mx_image.shape)
+plt.figure()
+plt.imshow(mx_image.asnumpy())
+plt.show()
 
 

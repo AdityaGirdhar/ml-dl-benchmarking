@@ -6,8 +6,14 @@ import mxnet as mx
 from mxnet import profiler
 import re
 import time
-data_ctx = mx.cpu()
-model_ctx = mx.cpu()        
+# setting the context for the program 
+mx.test_utils.list_gpus()
+if mx.context.num_gpus() > 0:
+    data_ctx = mx.gpu()
+    model_ctx = mx.gpu()
+else:
+    data_ctx = mx.cpu()
+    model_ctx = mx.cpu()
 mx.random.seed(42, ctx=model_ctx)
 
 # %%
@@ -26,12 +32,12 @@ train_label_array = mx.nd.array(mnist['train_label'], ctx=data_ctx)
 test_data_array = mx.nd.array(mnist['test_data'], ctx=data_ctx)
 test_label_array = mx.nd.array(mnist['test_label'], ctx=data_ctx)
 
-# Combine training and validation data
-combined_data = mx.nd.concatenate([train_data_array, test_data_array], axis=0)
-combined_label = mx.nd.concatenate([train_label_array, test_label_array], axis=0)
-
 # Create an iterator with combined data
-combined_data_iter = mx.io.NDArrayIter(combined_data, combined_label, batch_size, shuffle=True)
+combined_data_iter = mx.io.NDArrayIter(train_data_array, train_label_array, batch_size, shuffle=True)
+val_data_iter = mx.io.NDArrayIter(test_data_array, test_label_array, batch_size, shuffle=True)
+
+# %% [markdown]
+# Neural network construction
 
 # %%
 # defining a neural net
@@ -54,6 +60,9 @@ trainer = mx.gluon.Trainer(net.collect_params(), 'sgd', {'learning_rate': learni
 num_of_epochs = 10
 metric = mx.metric.Accuracy()
 loss = mx.gluon.loss.SoftmaxCrossEntropyLoss()
+
+# %% [markdown]
+# Training loop
 
 # %%
 def training_function():
@@ -132,5 +141,71 @@ if (total_execution_time==0):
 print(f"Maximum GPU memory usage: {max_gpu_use} KB")
 print(f"Maximum CPU memory usage: {max_cpu_use} KB")
 print(f"Total execution time: {total_execution_time} milli seconds (ms)")
+
+# %%
+# set the profiler to default
+profiler.set_config(profile_all=False,profile_symbolic = False, profile_imperative = False,profile_memory = False, profile_api = True, aggregate_stats=True,continuous_dump=False, filename='neural_net_gpu_profile.json')
+
+# %%
+mx.nd.waitall() 
+
+# starting the profiler
+profiler.set_state('run')
+start = time.time()
+
+# %%
+# predictions on the training data
+combined_data_iter.reset()
+for batch in combined_data_iter:
+    data = mx.gluon.utils.split_and_load(batch.data[0], ctx_list = [model_ctx], batch_axis=0)
+    label = mx.gluon.utils.split_and_load(batch.label[0], ctx_list = [model_ctx], batch_axis=0)
+    outputs = []
+    for x in data:
+        outputs.append(net(x))
+    metric.update(label, outputs)
+combined_accuracy = metric.get()
+# predictions on the validation data
+val_data_iter.reset()
+for batch in val_data_iter:
+    data = mx.gluon.utils.split_and_load(batch.data[0], ctx_list = [model_ctx], batch_axis=0)
+    label = mx.gluon.utils.split_and_load(batch.label[0], ctx_list = [model_ctx], batch_axis=0)
+    outputs = []
+    for x in data:
+        outputs.append(net(x))
+    metric.update(label, outputs)
+val_accuracy = metric.get()
+
+# %%
+# waiting for all operations to end, then stopping the profiler
+mx.nd.waitall()
+end = time.time()
+profiler.set_state('stop')
+
+# %%
+# evaluating the performance on the predictions
+combined_accuracy = combined_accuracy[1]
+val_accuracy = val_accuracy[1]
+
+# %%
+results = profiler.dumps()
+result = results
+result = result.split('\n')
+# splitting the result into a list of lists
+for i in range(len(result)):
+    result[i] = result[i].split() 
+# parsing the profiler data
+total_execution_time = 0
+for i in result:
+    if (len(i)>=6):
+        if (re.match(r'^-?\d+(?:\.\d+)$', i[-4]) is not None):
+            total_execution_time += float(i[-4])
+
+if (total_execution_time==0):
+    total_execution_time = (end - start)*1000
+
+# %%
+print(f"Total execution time: {total_execution_time} milli seconds (ms)")
+print(f"Training accuracy: {combined_accuracy*100} %")
+print(f"Validation accuracy: {val_accuracy*100} %")
 
 
