@@ -1,80 +1,90 @@
+import time
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers, models
+from tensorflow.keras import layers, models, optimizers
 from tensorflow.keras.datasets import mnist
 from tensorflow.keras.utils import to_categorical
-from memory_profiler import profile
-# Load the dataset
-(train_data, train_labels), (test_data, test_labels) = mnist.load_data()
 
-# Normalize and preprocess the data
-train_data = train_data.reshape((60000, 28 * 28))
-train_data = train_data.astype('float32') / 255
-test_data = test_data.reshape((10000, 28 * 28))
-test_data = test_data.astype('float32') / 255
+# Load the MNIST dataset
+(train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 
-# One-hot encode the labels
-train_labels = to_categorical(train_labels)
-test_labels = to_categorical(test_labels)
+# Resize images to 224x224
+from skimage.transform import resize
 
-# Define the neural net using Keras Sequential API
-model = models.Sequential()
-model.add(layers.Dense(200, activation='relu', input_shape=(784,)))
-model.add(layers.Dense(100, activation='relu'))
-model.add(layers.Dense(10, activation='softmax'))
+train_images_resized = np.array([resize(image, (224, 224)) for image in train_images])
+test_images_resized = np.array([resize(image, (224, 224)) for image in test_images])
 
-# Compile the model with the SGD optimizer
-learning_rate = 0.1
-model.compile(optimizer=tf.keras.optimizers.SGD(learning_rate=learning_rate),
+# Normalize pixel values to the range [0, 1]
+train_images_resized = train_images_resized.astype('float32') / 255.0
+test_images_resized = test_images_resized.astype('float32') / 255.0
+
+# Convert labels to one-hot encoding
+train_labels = to_categorical(train_labels, 10)
+test_labels = to_categorical(test_labels, 10)
+
+# Create the AlexNet model
+def alexnet_model(input_shape=(224, 224, 1), num_classes=10):
+    model = models.Sequential()
+    
+    # Layer 1
+    model.add(layers.Conv2D(96, kernel_size=(11, 11), strides=(4, 4), activation='relu', input_shape=input_shape))
+    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(layers.BatchNormalization())
+
+    # Layer 2
+    model.add(layers.Conv2D(256, kernel_size=(5, 5), padding='same', activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(layers.BatchNormalization())
+
+    # Layer 3
+    model.add(layers.Conv2D(384, kernel_size=(3, 3), padding='same', activation='relu'))
+    model.add(layers.BatchNormalization())
+
+    # Layer 4
+    model.add(layers.Conv2D(384, kernel_size=(3, 3), padding='same', activation='relu'))
+    model.add(layers.BatchNormalization())
+
+    # Layer 5
+    model.add(layers.Conv2D(256, kernel_size=(3, 3), padding='same', activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    model.add(layers.BatchNormalization())
+
+    # Flatten the output for the fully connected layers
+    model.add(layers.Flatten())
+
+    # Fully connected layers
+    model.add(layers.Dense(4096, activation='relu'))
+    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(4096, activation='relu'))
+    model.add(layers.Dropout(0.5))
+    
+    # Output layer with softmax activation for num_classes
+    model.add(layers.Dense(num_classes, activation='softmax'))
+    
+    return model
+
+# Create the model
+model = alexnet_model(input_shape=(224, 224, 1), num_classes=10)
+
+# Compile the model
+model.compile(optimizer=optimizers.Adam(learning_rate=0.001),
               loss='categorical_crossentropy',
               metrics=['accuracy'])
 
-# Print the model summary (optional)
-model.summary()
+# Reshape the data to match the model's input shape
+train_images_reshaped = np.expand_dims(train_images_resized, axis=-1)
+test_images_reshaped = np.expand_dims(test_images_resized, axis=-1)
 
-# Set up the batch size and number of epochs
-batch_size = 100
-num_of_epochs = 10
+# Train the model and measure the training time
+start_time = time.time()
+model.fit(train_images_reshaped, train_labels, batch_size=128, epochs=10, verbose=1)
+training_time = time.time() - start_time
 
-# Training function
-@profile   # Add memory_profiler decorator
-def training_function():
-    model.fit(train_data, train_labels, batch_size=batch_size, epochs=1, verbose=0)
+# Evaluate the model and measure the prediction time
+start_time = time.time()
+test_loss, test_accuracy = model.evaluate(test_images_reshaped, test_labels, verbose=0)
+prediction_time = (time.time() - start_time) / len(test_images_reshaped)  # Time per image prediction
 
-# Run the training function once before starting the profiler
-training_function()
-
-# Start memory profiling
-
-
-# Start time profiling using cProfile
-import cProfile
-pr = cProfile.Profile()
-pr.enable()
-
-# Train the model for multiple epochs
-for epoch in range(num_of_epochs):
-    training_function()
-
-# Stop profiling
-pr.disable()
-
-# Print the profiling results
-print("Time profiling results:")
-pr.print_stats(sort="time")
-
-loss, accuracy = model.evaluate(test_data, test_labels, verbose=0)
-print("Model accuracy on test data:", accuracy)
-
-# Measure prediction time
-import cProfile
-pr = cProfile.Profile()
-pr.enable()
-
-predictions = model.predict(test_data)
-pr.disable()
-
-# Print the profiling results
-print("Prediction Time profiling results:")
-pr.print_stats(sort="time")
-
+print(f"Training Time: {training_time:.2f} seconds")
+print(f"Prediction Time per Image: {prediction_time:.5f} seconds")
+print(f"Test Accuracy: {test_accuracy:.4f}")
