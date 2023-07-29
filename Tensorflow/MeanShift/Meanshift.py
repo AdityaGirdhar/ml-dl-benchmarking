@@ -1,72 +1,49 @@
 import tensorflow as tf
 import numpy as np
+from sklearn.metrics import silhouette_score
 import time
-import matplotlib.pyplot as plt
-import cProfile
-import pstats
-from memory_profiler import profile
 
+def mean_shift_clustering(data, bandwidth, num_iterations, width, height):
+    print(" started")
+    start = time.time()
+    for _ in range(num_iterations):
+        updated_data = tf.Variable(data.numpy(), dtype=tf.float32)  # Create a copy of data to update
+        for w in range(width):
+            for h in range(height):
+                k = tf.exp(tf.reduce_sum(-tf.square((data[w, h] - data) / bandwidth), axis=2))
+                a = tf.reduce_sum((data - data[w, h]) * tf.reshape(k, (width, height, 1)), axis=(0, 1))
+                b = tf.reduce_sum(k, axis=(0, 1))
+                updated_data[w, h].assign(data[w, h] + a / b)  # Use assign to update the values
+        data.assign(updated_data)  # Assign the updated values back to the original data
+    endtime = time.time()
+    print("ended ", endtime - start, " ")
+    return data
+
+def calculate_silhouette_score(data, labels):
+    return silhouette_score(data.numpy().reshape(-1, data.shape[-1]), labels)
 
 def run_model():
-  @profile
-  def train_model():
-      # Defining the training loop
-      profiler = cProfile.Profile()
-      profiler.enable()
-      for epoch in range(num_of_epochs):
-          tf_image2 = tf_image.numpy().copy()
-          for w in range(width):
-              for h in range(height):
-                  k = tf.exp(tf.reduce_sum(-tf.square((tf_image[w, h] - tf_image) / bandwidth), axis=2))
-                  a = tf.reduce_sum((tf_image - tf_image[w, h]) * tf.reshape(k, (width, height, 1)), axis=(0, 1))
-                  b = tf.reduce_sum(k, axis=(0, 1))
-                  tf_image2[w, h] = tf_image[w, h] + a / b
-          tf_image.assign(tf_image2)
-      profiler.disable()
-      stats = pstats.Stats(profiler)
-      stats.strip_dirs()
-      stats.sort_stats('tottime')
-      stats.print_stats('fit')
+    img = tf.keras.preprocessing.image.load_img('peppers.png', target_size=(150, 200))
+    image = tf.keras.preprocessing.image.img_to_array(img)
+    image = image.astype('float32') / 255.0
 
-      
+    # Getting the dimensions of the image and setting hyperparameters
+    width = image.shape[0]
+    height = image.shape[1]
+    colors = image.shape[2]
+    num_of_epochs = 10
+    bandwidth = 0.1
 
-  @profile
-  def predict():
-      # Generating prediction using the trained model
-      profiler = cProfile.Profile()
-      profiler.enable()
-      generated_image = tf_image.numpy()
-      profiler.disable()
-      stats = pstats.Stats(profiler)
-      stats.strip_dirs()
-      stats.sort_stats('tottime')
-      stats.print_stats('predict')
+    # Creating TensorFlow variables
+    tf_image = tf.Variable(image, dtype=tf.float32)
 
+    # Perform Mean Shift clustering
+    clustered_image = mean_shift_clustering(tf_image, bandwidth, num_of_epochs, width, height)
 
-      # Displaying the generated image
-      plt.imshow(generated_image)
-      plt.axis('off')
-      plt.show()
+    # Calculate silhouette score
+    flat_image = tf.reshape(clustered_image, [-1, colors])
+    labels = tf.argmin(tf.norm(flat_image[:, None] - flat_image, axis=-1), axis=-1)
+    silhouette_score_val = calculate_silhouette_score(flat_image, labels)
+    print("Silhouette Score:", silhouette_score_val)
 
-  physical_devices = tf.config.list_physical_devices('GPU')
-  if len(physical_devices) > 0:
-      tf.config.experimental.set_memory_growth(physical_devices[0], True)
-
-  img = tf.keras.preprocessing.image.load_img('peppers.png', target_size=(150, 200))
-  image = tf.keras.preprocessing.image.img_to_array(img)
-  image = image.astype('float32') / 255.0
-
-  # Getting the dimensions of the image and setting hyperparameters
-  width = image.shape[0]
-  height = image.shape[1]
-  colors = image.shape[2]
-  num_of_epochs = 10
-  bandwidth = 0.1
-
-  # Creating TensorFlow variables
-  tf_image = tf.Variable(image, dtype=tf.float32)
-    
-  train_model()
-  predict()
 run_model()
-

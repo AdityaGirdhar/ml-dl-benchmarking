@@ -1,98 +1,86 @@
+import tensorflow as tf
+import time
 import numpy as np
 import pandas as pd
-import time
-import tensorflow as tf
-import psutil
 
-class LinearRegression:
-    def __init__(self):
-        self.weights = None
+# reading the data
+train_data = pd.read_csv('../train_data.csv')
+test_data = pd.read_csv('../test_data.csv')
+
+# convert to numpy array
+train_data = train_data.to_numpy()
+test_data = test_data.to_numpy()
+
+# standardize the features
+mean = np.mean(train_data, axis=0)
+std = np.std(train_data, axis=0)
+train_data = (train_data - mean) / std
+test_data = (test_data - mean) / std
+
+# Splitting data into features and target
+x_data_np = train_data[:, :-1]
+y_data_np = train_data[:, -1].reshape(-1, 1)
+
+x_data_test_np = test_data[:, :-1]
+y_data_test_np = test_data[:, -1].reshape(-1, 1)
+
+# Convert numpy arrays to TensorFlow tensors with float64 dtype
+x_data = tf.constant(x_data_np, dtype=tf.float64)
+y_data = tf.constant(y_data_np, dtype=tf.float64)
+
+x_data_test = tf.constant(x_data_test_np, dtype=tf.float64)
+y_data_test = tf.constant(y_data_test_np, dtype=tf.float64)
+
+# Define the model
+def model(x):
+    return tf.matmul(x, w) + b
+
+# Mean squared error loss function
+def mse(t1, t2):
+    diff = t1 - t2
+    return tf.reduce_sum(tf.square(diff)) / tf.size(diff, out_type=tf.float64)
+
+
+num_of_epochs = 1000
+learning_rate = 0.001
+input_size = x_data.shape[1]  # Number of features in the input data
+
+# Initialize the weight tensor with appropriate shape
+np.random.seed(42)
+w_np = np.random.randn(input_size, 1)
+b_np = np.random.randn(1)
+
+# Convert numpy arrays to TensorFlow tensors with float64 dtype
+w = tf.Variable(w_np, dtype=tf.float64)
+b = tf.Variable(b_np, dtype=tf.float64)
+
+start_time = time.time()
+print("start")
+
+for epoch in range(num_of_epochs):
+    with tf.GradientTape() as tape:
+        preds = model(x_data)
+        loss = mse(preds, y_data)
     
-    def fit(self, X, y, learning_rate=0.01, num_iterations=1000):
-        start_time = time.time()
-        
-        # Normalize the features using z-score normalization
-        X_normalized = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
-        
-        # Add a column of ones to X for the bias term
-        X_normalized = np.hstack((np.ones((X_normalized.shape[0], 1)), X_normalized))
-        
-        # Convert the numpy arrays to TensorFlow tensors
-        X_tensor = tf.constant(X_normalized, dtype=tf.float32)
-        y_tensor = tf.constant(y.reshape(-1, 1), dtype=tf.float32)
-        
-        num_samples, num_features = X_tensor.shape
-        
-        # Initialize weights with zeros
-        self.weights = tf.Variable(tf.zeros((num_features, 1), dtype=tf.float32))
-        
-        # Perform gradient descent
-        for i in range(num_iterations):
-            predictions = tf.matmul(X_tensor, self.weights)
-            error = predictions - y_tensor
-            gradients = tf.matmul(tf.transpose(X_tensor), error) / num_samples
-            self.weights.assign_sub(learning_rate * gradients)
-        
-        end_time = time.time()
-        execution_time = end_time - start_time
-        return execution_time
-    
-    def predict(self, X):
-        start_time = time.time()
-        
-        # Normalize the features using z-score normalization
-        X_normalized = (X - np.mean(X, axis=0)) / np.std(X, axis=0)
-        
-        # Add a column of ones to X for the bias term
-        X_normalized = np.hstack((np.ones((X_normalized.shape[0], 1)), X_normalized))
-        
-        # Convert the numpy array to a TensorFlow tensor
-        X_tensor = tf.constant(X_normalized, dtype=tf.float32)
-        
-        # Make predictions
-        predictions = tf.matmul(X_tensor, self.weights)
-        
-        end_time = time.time()
-        execution_time = end_time - start_time
-        return predictions, execution_time
+    # Calculate gradients and update weights
+    gradients = tape.gradient(loss, [w, b])
+    w.assign_sub(learning_rate * gradients[0])
+    b.assign_sub(learning_rate * gradients[1])
+    if (epoch % 100 == 0):
+        print(epoch)
 
-# Specify the device type as "cuda"
-device = tf.device("cuda" if tf.config.list_physical_devices('GPU') else "cpu")
-print("Device:", "cuda" if tf.config.list_physical_devices('GPU') else "cpu")
+end_time = time.time()
 
-# Load and preprocess the data
-data = np.loadtxt(r'..\Dataset\custom_2017_2020.csv', delimiter=',', skiprows=1)
-cols = ["exp_imp", "Year", "month", "ym", "Country", "Custom", "hs2", "hs4", "hs6", "hs9", "Q1", "Q2", "Value"]
-df = pd.DataFrame(data, columns=cols)
-train = df.sample(frac=0.8)
-test = df.sample(frac=0.2)
+# Print the elapsed time
+elapsed_time = end_time - start_time
+print("Time in TensorFlow: ", elapsed_time, " seconds")
 
-# Split the data into features and target
-X = train.iloc[:, :-1].values
-y = train.iloc[:, -1].values
+# Making predictions on training data
+train_preds = model(x_data)
+train_acc = mse(y_data, train_preds)
+print("Training Accuracy: {}".format(train_acc.numpy()))
 
-X_test = test.iloc[:, :-1].values
-y_test = test.iloc[:, -1].values
-
-# Create an instance of LinearRegression class
-lr = LinearRegression()
-
-# Measure memory usage during fit
-fit_memory_usage = psutil.Process().memory_info().rss / 1024 ** 2  # in MB
-print("Memory usage during fit:", fit_memory_usage, "MB")
-
-# Fit the model
-fit_execution_time = lr.fit(X, y)
-print("Time to fit the model:", fit_execution_time)
-
-# Measure memory usage during predict
-predict_memory_usage = psutil.Process().memory_info().rss / 1024 ** 2  # in MB
-print("Memory usage during predict:", predict_memory_usage, "MB")
-
-# Make predictions
-predictions = lr.predict(X_test)
-
-# Calculate MSE loss
-mse_loss = np.mean((predictions[0].numpy().flatten() - y_test) ** 2)
-print("MSE Loss:", mse_loss)
-print("Time to predict:", predictions[1])
+# Making predictions on testing data
+test_preds = model(x_data_test)
+test_acc = mse(y_data_test, test_preds)
+print("Testing Accuracy: {} ".format(test_acc.numpy()))
