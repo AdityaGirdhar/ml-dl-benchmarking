@@ -8,11 +8,11 @@ from tensorflow.keras.utils import to_categorical
 # Load the MNIST dataset
 (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 
-# Resize images to 224x224
+# Resize images to 32x32 to match LeNet's input shape
 from skimage.transform import resize
 
-train_images_resized = np.array([resize(image, (224, 224)) for image in train_images])
-test_images_resized = np.array([resize(image, (224, 224)) for image in test_images])
+train_images_resized = np.array([resize(image, (32, 32)) for image in train_images])
+test_images_resized = np.array([resize(image, (32, 32)) for image in test_images])
 
 # Normalize pixel values to the range [0, 1]
 train_images_resized = train_images_resized.astype('float32') / 255.0
@@ -22,41 +22,24 @@ test_images_resized = test_images_resized.astype('float32') / 255.0
 train_labels = to_categorical(train_labels, 10)
 test_labels = to_categorical(test_labels, 10)
 
-# Create the AlexNet model
-def alexnet_model(input_shape=(224, 224, 1), num_classes=10):
+# Create the LeNet model
+def lenet_model(input_shape=(32, 32, 1), num_classes=10):
     model = models.Sequential()
     
     # Layer 1
-    model.add(layers.Conv2D(96, kernel_size=(11, 11), strides=(4, 4), activation='relu', input_shape=input_shape))
-    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-    model.add(layers.BatchNormalization())
-
+    model.add(layers.Conv2D(6, kernel_size=(5, 5), activation='relu', input_shape=input_shape))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    
     # Layer 2
-    model.add(layers.Conv2D(256, kernel_size=(5, 5), padding='same', activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-    model.add(layers.BatchNormalization())
-
-    # Layer 3
-    model.add(layers.Conv2D(384, kernel_size=(3, 3), padding='same', activation='relu'))
-    model.add(layers.BatchNormalization())
-
-    # Layer 4
-    model.add(layers.Conv2D(384, kernel_size=(3, 3), padding='same', activation='relu'))
-    model.add(layers.BatchNormalization())
-
-    # Layer 5
-    model.add(layers.Conv2D(256, kernel_size=(3, 3), padding='same', activation='relu'))
-    model.add(layers.MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-    model.add(layers.BatchNormalization())
-
+    model.add(layers.Conv2D(16, kernel_size=(5, 5), activation='relu'))
+    model.add(layers.MaxPooling2D(pool_size=(2, 2)))
+    
     # Flatten the output for the fully connected layers
     model.add(layers.Flatten())
 
     # Fully connected layers
-    model.add(layers.Dense(4096, activation='relu'))
-    model.add(layers.Dropout(0.5))
-    model.add(layers.Dense(4096, activation='relu'))
-    model.add(layers.Dropout(0.5))
+    model.add(layers.Dense(120, activation='relu'))
+    model.add(layers.Dense(84, activation='relu'))
     
     # Output layer with softmax activation for num_classes
     model.add(layers.Dense(num_classes, activation='softmax'))
@@ -64,7 +47,7 @@ def alexnet_model(input_shape=(224, 224, 1), num_classes=10):
     return model
 
 # Create the model
-model = alexnet_model(input_shape=(224, 224, 1), num_classes=10)
+model = lenet_model(input_shape=(32, 32, 1), num_classes=10)
 
 # Compile the model
 model.compile(optimizer=optimizers.Adam(learning_rate=0.001),
