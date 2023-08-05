@@ -1,0 +1,22 @@
+PyTorch: 171.01935577392578 seconds
+Numpy: 408.971971988678 seconds
+Tensorflow: 654.3243610858917 seconds
+PyTorch: 190.17948985099792 seconds
+Keras:  442.0859589576721  seconds
+MXNet (CPU): 288.2500743865967 seconds
+
+
+Automated test: 2023-07-02 16:06:03
+
+
+Automated test: 2023-07-02 16:12:14
+Keras:  438.596257686615  seconds
+Numpy: 419.35668563842773 seconds
+
+Automated test: 2023-07-02 18:42:43
+
+Automated test: 2023-07-02 18:43:37
+PyTorch: 213.05420970916748 seconds
+Tensorflow: 685.3514478206635 seconds
+Keras:  451.34176230430603  seconds
+Numpy: 421.8434212207794 seconds

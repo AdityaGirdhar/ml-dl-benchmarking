@@ -1,0 +1,17 @@
+
+Time in pytorch:  135.22413754463196  seconds
+Time in mxnet: 0.2707488536834717 seconds
+Time in Keras 560.5059413909912
+Time in numpy: 292.4857358932495 seconds
+
+Time in pytorch:  103.72025108337402  seconds
+Time in Keras 528.4105093479156
+Time in numpy: 303.9039144515991 seconds
+
+Time in pytorch:  106.35896229743958  seconds
+Time in numpy: 279.70798897743225 seconds
+Time in Keras 550.9463436603546
+
+Elapsed time:  46.16151428222656  seconds
+Elapsed time:  43.06817102432251  seconds
+Elapsed time:  43.654481172561646  seconds
