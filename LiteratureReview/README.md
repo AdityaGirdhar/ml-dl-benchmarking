@@ -42,4 +42,20 @@ Published in [Springer Link](https://link.springer.com/article/10.1007/s10586-02
 - For studying CPU/GPU utilisation, the study has used the metric as how frequently the CPU is utilized during the training of the deep learning models. 
 - Instead of trying out by varying several hyperparameters, the study has focussed on working with the default hyperparameters which were set, and the epochs were varied. 
 ### Shortcomings: 
-- After carefully going through source code, it is noted that the study has made use of the time module instead of using profilers provided by frameworks for performing benchmarkings. 
+- After carefully going through source code, it is noted that the study has made use of the time module instead of using profilers provided by frameworks for performing benchmarkings.
+
+
+# Review and comparative analysis of machine learning libraries for machine learning
+- The research paper linked below has conducted a very similar experiment where they have compared the performance time with respect to almost the same accuracy for Neural Networks across libraries:
+https://www.researchgate.net/publication/339378210_Review_and_comparative_analysis_of_machine_learning_libraries_for_machine_learning
+
+# Kaggle Survey
+We also looked at https://www.kaggle.com/kaggle-survey-2022
+A Survey conducted by Kaggle which shows the preference of developers for libraries for Machine Learning. The above resource can be utilized as a parameter for ease of use and community support.
+
+# MLModelScope: A Distributed Platform for ML Model Evaluation and Benchmarking at Scale 
+Abstract: Machine Learning (ML) and Deep Learning (DL) innovations are being introduced at such a rapid pace that researchers are hard-pressed to analyze and study them. The complicated procedures for evaluating innovations, along with the lack of standard and efficient ways of specifying and provisioning ML/DL evaluation, is a major "pain point" for the community. This paper proposes MLModelScope, an open-source, framework/hardware agnostic, extensible and customizable design that enables repeatable, fair, and scalable model evaluation and benchmarking.  We implement the distributed design with support for all major frameworks and hardware, and equip it with web, command-line, and library interfaces. To demonstrate MLModelScope's capabilities we perform parallel evaluation and show how subtle changes to model evaluation pipeline affects the accuracy and HW/SW stack choices affect performance.
+
+# Benchmarking State-of-the-Art Deep Learning Software Tools
+Abstract:
+Deep learning has been shown as a successful machine learning method for a variety of tasks, and its popularity results in numerous open-source deep learning software tools coming to public. Training a deep network is usually a very time-consuming process. To address the huge computational challenge in deep learning, many tools exploit hardware features such as multi-core CPUs and many-core GPUs to shorten the training and inference time. However, different tools exhibit different features and running performance when they train different types of deep networks on different hardware platforms, making it difficult for end users to select an appropriate pair of software and hardware. In this paper, we present our attempt to benchmark several state-of-the-art GPU-accelerated deep learning software tools, including Caffe, CNTK, TensorFlow, and Torch. We focus on evaluating the running time performance (i.e., speed) of these tools with three popular types of neural networks on two representative CPU platforms and three representative GPU platforms. Our contribution is two-fold. First, for end users of deep learning software tools, our benchmarking results can serve as a reference to selecting appropriate hardware platforms and software tools. Second, for developers of deep learning software tools, our in-depth analysis points out possible future directions to further optimize the running performance.
